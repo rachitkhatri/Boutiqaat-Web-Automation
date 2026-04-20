@@ -1,5 +1,9 @@
 # 🧪 Boutiqaat Automation Framework
 
+**Execute the complete suite - Run the Below Command**
+python3 -m pytest tests/ -v --log-cli-level=DEBUG
+
+
 **Comprehensive E2E test automation framework for boutiqaat.com**
 
 [![Framework](https://img.shields.io/badge/Framework-Playwright-45ba4b?style=flat-square)](https://playwright.dev/)
@@ -564,3 +568,4 @@ For issues or questions:
 **Framework Version:** 1.0  
 **Last Updated:** April 2026  
 **Status:** ✅ Production Ready
+
