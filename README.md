@@ -3,6 +3,8 @@
 **Execute the complete suite - Run the Below Command**
 python3 -m pytest tests/ -v --log-cli-level=DEBUG
 
+**Stop the execution**
+Ususally we use the cntrl C but if he does not work use this command - pkill -f pytest
 
 **Comprehensive E2E test automation framework for boutiqaat.com**
 
