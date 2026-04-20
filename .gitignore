@@ -1,0 +1,24 @@
+# ── Environment ──
+#.env
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+
+# ── Pytest ──
+.pytest_cache/
+
+# ── Auto-generated output ──
+logs/
+reports/
+screenshots/
+videos/
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
