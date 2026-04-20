@@ -1,0 +1,18 @@
+# Browser automation
+playwright
+
+# Test runner
+pytest
+
+# Playwright pytest plugin — provides browser/page fixtures
+pytest-playwright
+
+# HTML test report: pytest --html=report.html
+pytest-html
+
+# HTTP client — used for REST API registration in registration_page.py
+requests
+
+# Load .env files for secrets (optional)
+python-dotenv
+pytest-json-report
