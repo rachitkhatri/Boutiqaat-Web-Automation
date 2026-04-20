@@ -154,8 +154,7 @@ boutiqaat-automation/
 ### **Step 1: Clone Repository**
 
 ```bash
-git clone git@github.com:rachitkhatri/Boutiqaat-Web-Automation.git
-cd Boutiqaat-Web-Automation
+git clone #Gitlab URL
 ```
 
 ### **Step 2: Install Python Dependencies**
