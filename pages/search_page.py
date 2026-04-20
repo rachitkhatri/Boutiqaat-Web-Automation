@@ -76,5 +76,4 @@ class SearchPage(BasePage):
             self.page.locator("a[href*='/p/']").first.click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3_000)  # Wait for product detail page to settle
         log("Product Selected", "PASS")

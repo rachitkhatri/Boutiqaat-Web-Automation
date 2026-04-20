@@ -49,7 +49,6 @@ class BasePage:
                     el.remove();                 // Remove from DOM entirely
                 });
             """)
-            self.page.wait_for_timeout(300)  # Brief pause for DOM to settle
         except Exception:
             pass  # Silently continue — overlay removal is best-effort
 

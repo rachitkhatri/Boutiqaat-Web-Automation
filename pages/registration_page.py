@@ -93,7 +93,7 @@ class RegistrationPage(BasePage):
 
                 # Brief pause — Magento needs a moment to propagate the new
                 # account before the login page can authenticate it.
-                self.page.wait_for_timeout(3_000)
+                self.page.wait_for_timeout(5_000)
 
                 # ── STEP 2: LOGIN VIA UI ─────────────────────────────
                 # Navigate to the login page and fill credentials.
@@ -113,22 +113,17 @@ class RegistrationPage(BasePage):
 
                 # Fill email and password with human-like typing
                 self.page.locator("input[name='email']").fill("")
-                self.page.wait_for_timeout(500)
                 self.type_like_user(
                     self.page.locator("input[name='email']"), data["email"]
                 )
-                self.page.wait_for_timeout(500)
                 self.page.locator("input[name='password']").fill("")
-                self.page.wait_for_timeout(500)
                 self.type_like_user(
                     self.page.locator("input[name='password']"), data["password"]
                 )
-                self.page.wait_for_timeout(500)
 
                 # Click LOGIN button
                 login_btn = self.page.locator("button", has_text="LOGIN")
                 login_btn.scroll_into_view_if_needed()
-                self.page.wait_for_timeout(500)
                 login_btn.click()
                 self.page.wait_for_load_state("networkidle")
                 self.page.wait_for_timeout(PAGE_SETTLE_MS)

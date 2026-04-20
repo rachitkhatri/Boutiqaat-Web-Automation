@@ -20,6 +20,8 @@
 # Import pytest framework - provides decorators and fixtures
 import pytest
 
+import os
+
 # Import configuration values from our settings file
 from config.settings import VIDEO_DIR, DEFAULT_TIMEOUT
 
@@ -72,7 +74,7 @@ def browser_type_launch_args(browser_type_launch_args):
     """
     return {
         **browser_type_launch_args,  # Keep default args from pytest-playwright
-        "headless": False,            # Show browser window (visible mode)
+        "headless": os.getenv("CI") == "true",  # Headless in CI, visible locally
         "slow_mo":  100,              # 100ms delay between actions (human-like)
         "args":     ["--start-maximized"],  # Launch in fullscreen mode
     }

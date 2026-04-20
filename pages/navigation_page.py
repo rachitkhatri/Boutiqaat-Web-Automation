@@ -23,8 +23,7 @@ class NavigationPage(BasePage):
 
     def navigate_to(self, url: str, name: str) -> None:
         """Navigate to a URL and wait for the page to load."""
-        self.page.goto(url, wait_until="domcontentloaded")
-        self.page.wait_for_timeout(3_000)
+        self.page.goto(url, wait_until="networkidle")
         log(f"Navigated to {name}: {self.page.url[:60]}", "INFO")
 
     def get_product_count(self) -> int:

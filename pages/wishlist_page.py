@@ -46,11 +46,13 @@ class WishlistPage(BasePage):
         
         wl_btn.wait_for(state="visible", timeout=10_000)
         wl_btn.scroll_into_view_if_needed()
-        self.page.wait_for_timeout(500)
         wl_btn.click()
         
         # Wait for either navigation or AJAX update
-        self.page.wait_for_timeout(3_000)
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=15_000)
+        except Exception:
+            pass
         
         # Check if navigated to wishlist page
         if "/wish-list/" in self.page.url:
@@ -64,7 +66,7 @@ class WishlistPage(BasePage):
         except Exception:
             pass
         
-        self.page.wait_for_timeout(5_000)
+        self.page.wait_for_timeout(3_000)
         log("Added to Wishlist", "PASS")
 
     def get_wishlist_count(self, lang: str, country: str) -> int:
@@ -168,7 +170,6 @@ class WishlistPage(BasePage):
             f"{BASE_DOMAIN}/{lang}-{country}/{gender}/wish-list/",
             wait_until="networkidle",
         )
-        self.page.wait_for_timeout(3_000)
         log(f"Wishlist Page: {self.page.url[:60]}", "INFO")
 
     def remove_first_wishlist_item(self) -> None:
@@ -179,7 +180,7 @@ class WishlistPage(BasePage):
         trash_btn = self.page.locator("button:has(i.icon-trash)")
         if trash_btn.count() > 0:
             trash_btn.first.click()
-            self.page.wait_for_timeout(3_000)
+            self.page.wait_for_load_state("networkidle")
             log("Wishlist Item Removed", "PASS")
         else:
             log("No wishlist trash button found", "SKIP")

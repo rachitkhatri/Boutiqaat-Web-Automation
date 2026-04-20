@@ -43,9 +43,7 @@ class LoginPage(BasePage):
         self.dismiss_overlays()
 
         self.type_like_user(self.page.locator("input[name='email']"), email)
-        self.page.wait_for_timeout(300)
         self.type_like_user(self.page.locator("input[name='password']"), password)
-        self.page.wait_for_timeout(300)
 
         # LOGIN button text is uppercase on this site
         self.page.locator("button", has_text="LOGIN").click()

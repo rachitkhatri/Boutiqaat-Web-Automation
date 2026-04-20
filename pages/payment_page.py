@@ -73,7 +73,6 @@ class PaymentPage(BasePage):
         radio = self.page.locator(f"#{method_id}")
         if radio.count() > 0:
             radio.click()
-            self.page.wait_for_timeout(500)
             log(f"Payment Method Selected: {method_id}", "PASS")
         else:
             log(f"Payment method #{method_id} not found — using default", "SKIP")
@@ -101,14 +100,12 @@ class PaymentPage(BasePage):
         pay_btn = self.page.locator("#btnStatus")
         pay_btn.wait_for(state="visible", timeout=10_000)
         pay_btn.scroll_into_view_if_needed()
-        self.page.wait_for_timeout(500)
 
         # expect_navigation captures the redirect to the KNET gateway
         with self.page.expect_navigation(timeout=30_000):
             pay_btn.click()
 
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(3_000)
         log("Redirected to Payment Gateway", "PASS")
 
     def cancel_payment(self) -> None:

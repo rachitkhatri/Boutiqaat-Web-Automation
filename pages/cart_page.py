@@ -25,7 +25,6 @@ class CartPage(BasePage):
         add_link = self.page.locator(".pro-details-add-to-cart a")
         add_link.wait_for(state="visible", timeout=15_000)
         add_link.scroll_into_view_if_needed()
-        self.page.wait_for_timeout(1_000)
         
         # Click and wait for navigation (Buy Now redirects to cart)
         add_link.click()
@@ -44,19 +43,18 @@ class CartPage(BasePage):
             pass
         
         # Additional wait for cart to fully sync
-        self.page.wait_for_timeout(5_000)
+        self.page.wait_for_timeout(3_000)
         log("Add To Cart", "PASS")
 
     def open_cart(self, lang: str, country: str) -> None:
         """Navigate directly to the cart page URL."""
         self.page.goto(f"{BASE_DOMAIN}/{lang}-{country}/checkout/cart/")
-        self.page.wait_for_load_state("domcontentloaded")
-        self.page.wait_for_timeout(4_000)
+        self.page.wait_for_load_state("networkidle")
         log("Cart Page", "PASS")
 
     def get_cart_item_count(self) -> int:
         """Returns the number of product rows currently in the cart."""
-        self.page.wait_for_timeout(3_000)
+        self.page.wait_for_load_state("networkidle")
         
         # Check for empty cart message
         if self.page.locator("text='You have no items in your shopping cart'").count() > 0:
@@ -81,7 +79,6 @@ class CartPage(BasePage):
         trash_btn.first.click()
         # Wait for the cart page to reload after removal
         self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(2_000)
         log("Cart Item Removed", "PASS")
 
     def is_cart_empty(self) -> bool:

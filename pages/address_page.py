@@ -41,7 +41,6 @@ class AddressPage(BasePage):
             f"{BASE_DOMAIN}/{lang}-{country}/checkout/customeraddress/",
             wait_until="networkidle",
         )
-        self.page.wait_for_timeout(4_000)
         log("Address Page", "PASS")
 
     def open_management(self, lang: str, country: str, gender: str) -> None:
@@ -53,7 +52,6 @@ class AddressPage(BasePage):
             f"{BASE_DOMAIN}/{lang}-{country}/checkout/customeraddress/",
             wait_until="networkidle",
         )
-        self.page.wait_for_timeout(4_000)
         log("Address Management Page", "PASS")
 
     def _fill_form(self, data: dict) -> None:
@@ -64,34 +62,25 @@ class AddressPage(BasePage):
             add_new_btn = self.page.locator("text=Add New Address")
             if add_new_btn.count() > 0:
                 add_new_btn.click()
-                self.page.wait_for_timeout(3_000)
+                self.page.wait_for_selector("#firstname", state="visible", timeout=20_000)
             self.page.wait_for_selector("#firstname", state="visible", timeout=20_000)
         
-        self.page.wait_for_timeout(500)
         self.page.locator("#firstname").fill(data["full_name"])
-        self.page.wait_for_timeout(300)
         self.page.select_option("#region_area", label=data["area"])
+        # Dynamic dropdown — block options load after area selection
         self.page.wait_for_timeout(2_000)
         self.page.select_option("#addr_block", value=data["block"])
-        self.page.wait_for_timeout(500)
         self.page.locator("#addr_street").fill(data["street"])
-        self.page.wait_for_timeout(300)
         if data.get("avenue"):
             self.page.locator("#addr_avenue").fill(data["avenue"])
-            self.page.wait_for_timeout(300)
         self.page.locator("#addr_villa").fill(data["villa"])
-        self.page.wait_for_timeout(300)
         if data.get("floor"):
             self.page.locator("#addr_floornumber").fill(data["floor"])
-            self.page.wait_for_timeout(300)
         if data.get("flat"):
             self.page.locator("#addr_flatenumber").fill(data["flat"])
-            self.page.wait_for_timeout(300)
         self.page.locator("#telephone").fill(data["telephone"])
-        self.page.wait_for_timeout(300)
         if data.get("notes"):
             self.page.locator("#notes").fill(data["notes"])
-            self.page.wait_for_timeout(300)
 
     def fill_address(self, data: dict) -> None:
         """Fill the address form that is already visible on page load."""
@@ -102,6 +91,7 @@ class AddressPage(BasePage):
         """Click SAVE and wait for the page to confirm."""
         self.page.locator("button", has_text="SAVE").click()
         self.page.wait_for_load_state("networkidle")
+        # Wait for React to re-render the saved address view
         self.page.wait_for_timeout(3_000)
         log("Address Saved", "PASS")
 
@@ -113,7 +103,7 @@ class AddressPage(BasePage):
         add_btn = self.page.locator("text=Add New Address")
         add_btn.wait_for(state="visible", timeout=10_000)
         add_btn.click()
-        self.page.wait_for_timeout(2_000)
+        self.page.wait_for_selector("#firstname", state="visible", timeout=15_000)
         self._fill_form(data)
         self.save_address()
         log("New Address Added", "PASS")
@@ -125,8 +115,7 @@ class AddressPage(BasePage):
         """
         # Reload page to ensure fresh state
         try:
-            self.page.reload(wait_until="domcontentloaded")
-            self.page.wait_for_timeout(5_000)
+            self.page.reload(wait_until="networkidle")
         except Exception:
             pass
         
@@ -157,7 +146,6 @@ class AddressPage(BasePage):
         
         edit_btn.first.wait_for(state="visible", timeout=20_000)
         edit_btn.first.click()
-        self.page.wait_for_timeout(5_000)
         # Wait for form to appear
         self.page.wait_for_selector("#firstname", state="visible", timeout=30_000)
         # Clear and refill the form
@@ -179,8 +167,7 @@ class AddressPage(BasePage):
             self.page.wait_for_timeout(5_000)
             # Reload page to ensure fresh state
             try:
-                self.page.reload(wait_until="domcontentloaded")
-                self.page.wait_for_timeout(4_000)
+                self.page.reload(wait_until="networkidle")
             except Exception:
                 pass
             

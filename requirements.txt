@@ -16,3 +16,6 @@ requests
 # Load .env files for secrets (optional)
 python-dotenv
 pytest-json-report
+
+# Auto-retry failed tests (handles flaky web automation failures)
+pytest-rerunfailures
