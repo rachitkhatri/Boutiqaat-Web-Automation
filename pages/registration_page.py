@@ -128,14 +128,17 @@ class RegistrationPage(BasePage):
                 self.page.wait_for_load_state("networkidle")
                 self.page.wait_for_timeout(PAGE_SETTLE_MS)
 
-                # Success = the path no longer ends with /login/
-                # Use path check not full URL to avoid false positives
-                # from query params containing the word 'login'
-                from urllib.parse import urlparse
-                path = urlparse(self.page.url).path
-                if not path.rstrip("/").endswith("login"):
+                # Success: wait for the login form to disappear.
+                # The Next.js SPA may not update the URL immediately,
+                # but the email input will be hidden once login succeeds.
+                try:
+                    self.page.locator("input[name='email']").wait_for(
+                        state="hidden", timeout=15_000
+                    )
                     log(f"Registration + Login [{data['id']}]", "PASS")
                     return True
+                except Exception:
+                    pass
 
                 log(f"Login failed after registration — attempt {attempt}", "FAIL")
                 self.screenshot_on_failure(
