@@ -83,7 +83,7 @@ ADDRESS_DATA = {
 E2E_DATA = [
     {
         "id":            "e2e_kw_en_women",                    # Unique test ID (shown in report)
-        "full_name":     "E2E Tester",                         # Registration full name
+        "full_name":     "Happy Tester",                        # Registration full name
         "mobile_number": "50011111",                           # Kuwait mobile (8 digits)
         "email":         f"e2e.happy.{_TS}@mailinator.com",   # Unique email per run
         "password":      "Test@1234",                          # Meets site password policy
@@ -105,7 +105,7 @@ E2E_DATA = [
 E2E_CANCEL_DATA = [
     {
         "id":            "e2e_cancel_kw_en_women",
-        "full_name":     "E2E Cancel Tester",
+        "full_name":     "Cancel Tester",
         "mobile_number": "50022222",
         "email":         f"e2e.cancel.{_TS}@mailinator.com",
         "password":      "Test@1234",

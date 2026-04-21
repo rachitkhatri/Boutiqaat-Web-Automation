@@ -82,8 +82,11 @@ class RegistrationPage(BasePage):
                     timeout=30,
                 )
 
-                if resp.status_code != 200:
-                    log(f"API registration failed: {resp.status_code} {resp.text[:100]}", "FAIL")
+                resp_body = resp.text
+                log(f"API response: {resp.status_code} — {resp_body[:200]}", "DEBUG")
+
+                if resp.status_code != 200 or '"error"' in resp_body.lower():
+                    log(f"API registration failed: {resp.status_code} {resp_body[:200]}", "FAIL")
                     self.screenshot_on_failure(
                         f"screenshots/error_reg_{data['id']}_attempt{attempt}.png"
                     )
@@ -128,17 +131,13 @@ class RegistrationPage(BasePage):
                 self.page.wait_for_load_state("networkidle")
                 self.page.wait_for_timeout(PAGE_SETTLE_MS)
 
-                # Success: wait for the login form to disappear.
-                # The Next.js SPA may not update the URL immediately,
-                # but the email input will be hidden once login succeeds.
-                try:
-                    self.page.locator("input[name='email']").wait_for(
-                        state="hidden", timeout=15_000
-                    )
+                # After successful login, LOGIN button changes to username
+                self.page.wait_for_timeout(3_000)
+                login_btn_visible = self.page.locator("button", has_text="LOGIN").is_visible()
+
+                if not login_btn_visible:
                     log(f"Registration + Login [{data['id']}]", "PASS")
                     return True
-                except Exception:
-                    pass
 
                 log(f"Login failed after registration — attempt {attempt}", "FAIL")
                 self.screenshot_on_failure(
