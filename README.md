@@ -513,7 +513,8 @@ BasePage (base_page.py)
 
 ### **Key Design Decisions**
 
-- **API Registration**: The T&C checkbox on the registration page is unreliable across different viewport sizes. We use the REST API (`/rest/V1/customer/register`) for 100% reliable account creation, then login via UI to get a browser session.
+- **API Registration**: The T&C checkbox on the registration page is unreliable across different viewport sizes. We use the REST API (`/rest/V1/customer/register`) for 100% reliable account creation, then login via UI to get a browser session. The API response body is validated for errors (not just HTTP status code) since the API can return 200 with an error message (e.g. invalid name).
+- **Login Success Detection**: After clicking LOGIN, we verify the LOGIN button is no longer visible (it gets replaced by the username on successful login).
 - **Overlay Dismissal**: Boutiqaat shows celebrity popups and modal backdrops that block clicks. `BasePage.dismiss_overlays()` removes them via JavaScript injection.
 - **Human-Like Typing**: `type_like_user()` types character-by-character with 80ms delay to trigger keypress event handlers that `.fill()` would skip.
 - **Dynamic Dropdowns**: The address form's block dropdown loads dynamically after area selection. The page object waits 2 seconds after selecting the area before filling the block.
@@ -685,7 +686,7 @@ python3 -m pytest tests/test_new_feature.py -v
 | `Import Errors` | `pip install -r requirements.txt` |
 | `Timeout Errors` | Increase `DEFAULT_TIMEOUT` in `.env` |
 | `Element Not Found` | Check selector in page object, add explicit wait |
-| `Login Fails` | Check if site is rate-limiting, increase wait times |
+| `Login Fails` | Check API response body for errors (API may return 200 with error in body). Also check if site is rate-limiting |
 | `Overlay Blocks Click` | `BasePage.dismiss_overlays()` should handle it |
 | `Tests won't stop` | `pkill -f pytest && pkill -f chromium` |
 
