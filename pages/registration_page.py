@@ -27,6 +27,12 @@ from config.settings import BASE_DOMAIN, PAGE_SETTLE_MS
 MAX_ATTEMPTS = 3
 
 
+# ── HELPER ────────────────────────────────────────────────────
+def build_url(lang: str, country: str, gender: str) -> str:
+    """Build a boutiqaat landing page URL, e.g. https://www.boutiqaat.com/en-kw/women/"""
+    return f"{BASE_DOMAIN}/{lang}-{country}/{gender}/"
+
+
 class RegistrationPage(BasePage):
 
     def open(self, lang: str, country: str, gender: str) -> None:
@@ -36,7 +42,7 @@ class RegistrationPage(BasePage):
         is done via API in the register() method.
         """
         self.page.goto(
-            f"{BASE_DOMAIN}/{lang}-{country}/{gender}/register/",
+            build_url(lang, country, gender) + "register/",
             wait_until="networkidle"
         )
         self.page.wait_for_timeout(PAGE_SETTLE_MS)
@@ -102,10 +108,7 @@ class RegistrationPage(BasePage):
                 # Navigate to the login page and fill credentials.
                 # This gives the browser a valid PHPSESSID session cookie
                 # that all subsequent steps (cart, address, payment) need.
-                login_url = (
-                    f"{BASE_DOMAIN}/{data['lang']}-{data['country']}"
-                    f"/{data['gender']}/login/"
-                )
+                login_url = build_url(data['lang'], data['country'], data['gender']) + "login/"
                 self.page.goto(login_url, wait_until="networkidle")
                 self.page.wait_for_timeout(PAGE_SETTLE_MS)
 
