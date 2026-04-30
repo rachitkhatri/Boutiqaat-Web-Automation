@@ -5,8 +5,8 @@
 #   test_add_two_products_and_remove_one
 #     Register → Login →
 #     Search "perfume" → Add to cart →
-#     Search "puff" → Add Matte Black Sippii Bottle to cart →
-#     Go to cart → Remove puff item → Verify perfume still in cart
+#     Search "puff" → Add to cart →
+#     Go to cart → Remove one item → Verify 1 item remains
 #
 # Run: pytest tests/test_cart.py -v
 # ============================================================
@@ -25,10 +25,10 @@ def test_add_two_products_and_remove_one(page, data):
     """
     Test cart functionality with multiple products:
     1. Search "perfume" and add first product to cart
-    2. Search "puff" and add Matte Black Sippii Bottle to cart
+    2. Search "puff" and add first product to cart
     3. Go to cart page
-    4. Remove puff item using trash icon
-    5. Verify perfume item still in cart
+    4. Remove one item using trash icon
+    5. Verify 1 item remains in cart
     """
     reg = RegistrationPage(page)
     assert reg.register_and_login(data), "Registration/Login failed"
@@ -37,48 +37,46 @@ def test_add_two_products_and_remove_one(page, data):
     search = SearchPage(page)
     search.search("perfume")
     search.select_first_product()
-    
+
     cart = CartPage(page)
     cart.add_to_cart()
     log("Perfume added to cart", "PASS")
 
-    # ── STEP 2: SEARCH AND ADD PUFF (SIPPII BOTTLE) ───────────────
+    # ── STEP 2: SEARCH AND ADD PUFF ──────────────────────────────
     search.search("puff")
-    log("Search completed for: puff", "INFO")
-    
-    # Navigate to specific puff product
-    product_url = "https://www.boutiqaat.com/en-kw/women/matte-black-sippii-bottle-1/p/"
-    page.goto(product_url, wait_until="networkidle")
-    log("Navigated to: Matte Black Sippii Bottle", "INFO")
-    
+    search.select_first_product()
     cart.add_to_cart()
-    log("Puff (Sippii Bottle) added to cart", "PASS")
+    log("Puff added to cart", "PASS")
 
-    # ── STEP 3: GO TO CART PAGE ───────────────────────────────────
+    # ── STEP 3: GO TO CART PAGE ──────────────────────────────────
     cart.open_cart(data["lang"], data["country"])
-    log("Opened cart page with 2 items", "INFO")
+    page.wait_for_timeout(3_000)
+    log("Opened cart page", "INFO")
 
-    # ── STEP 4: REMOVE PUFF ITEM USING TRASH ICON ─────────────────
-    # Find all trash icons
+    # ── STEP 4: REMOVE ONE ITEM USING TRASH ICON ─────────────────
     trash_buttons = page.locator("button:has(i.icon-trash)")
     trash_count = trash_buttons.count()
     log(f"Found {trash_count} items in cart with trash icons", "INFO")
-    
-    if trash_count >= 2:
-        # Remove the second item (puff/sippii bottle)
-        trash_buttons.nth(1).click()
-        page.wait_for_load_state("networkidle")
-        log("Puff item removed from cart using trash icon", "PASS")
-    elif trash_count == 1:
-        # If only one item, remove it
-        trash_buttons.first.click()
-        page.wait_for_load_state("networkidle")
-        log("Item removed from cart", "PASS")
-    else:
-        log("No trash icons found in cart", "WARN")
+    assert trash_count == 2, (
+        f"Expected 2 items in cart before removal, "
+        f"but found {trash_count}"
+    )
 
-    # ── STEP 5: VERIFY PERFUME STILL IN CART ──────────────────────
+    trash_buttons.nth(1).click()
     page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(3_000)
+    log("Item removed from cart", "INFO")
+
+    # Reload cart for fresh DOM
+    cart.open_cart(data["lang"], data["country"])
+    page.wait_for_timeout(3_000)
+    log("Cart reloaded after item removal", "INFO")
+
+    # ── STEP 5: VERIFY 1 ITEM REMAINS IN CART ────────────────────
     remaining_items = page.locator("button:has(i.icon-trash)").count()
     log(f"Remaining items in cart: {remaining_items}", "INFO")
-    log("Cart operation completed - Added 2 items, removed 1", "PASS")
+    assert remaining_items == 1, (
+        f"Expected 1 item in cart after removing 1 of 2, "
+        f"but found {remaining_items}"
+    )
+    log("Cart operation completed - Added 2 items, removed 1, verified 1 remains", "PASS")
