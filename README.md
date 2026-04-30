@@ -5,6 +5,12 @@
 python3 -m pytest tests/ -v --log-cli-level=DEBUG
 ```
 
+**Execute the single test case - Run the below command**
+```bash
+python3 -m pytest tests/test_cart.py -k "cart" -v -s --
+log-cli-level=DEBUG
+```
+
 **Stop the execution**
 Usually we use `Ctrl + C` but if that does not work, open a new terminal and run:
 ```bash
