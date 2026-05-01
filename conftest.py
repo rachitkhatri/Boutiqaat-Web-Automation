@@ -21,12 +21,58 @@
 import pytest
 
 import os
+import shutil
+from datetime import datetime
 
 # Import configuration values from our settings file
 from config.settings import VIDEO_DIR, DEFAULT_TIMEOUT
 
 # Import logging utility for screenshot capture logging
 from utils.logger import log_screenshot
+
+
+# ──────────────────────────────────────────────────────────────────
+# ARCHIVE PREVIOUS RUN — move old outputs to archive/ before new run
+# ──────────────────────────────────────────────────────────────────
+
+def _archive_previous_run():
+    """
+    Move previous screenshots, videos, and reports into a timestamped
+    archive folder so each run starts fresh while preserving history.
+
+    Structure:
+        archive/
+          run_20260501_113000/
+            screenshots/
+            videos/
+            reports/
+    """
+    dirs_to_archive = ["screenshots", "videos", "reports"]
+
+    # Check if any previous output exists
+    has_files = any(
+        os.path.isdir(d) and os.listdir(d)
+        for d in dirs_to_archive
+    )
+
+    if not has_files:
+        return
+
+    # Create timestamped archive folder
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    archive_dir = os.path.join("archive", f"run_{ts}")
+    os.makedirs(archive_dir, exist_ok=True)
+
+    for d in dirs_to_archive:
+        if os.path.isdir(d) and os.listdir(d):
+            shutil.move(d, os.path.join(archive_dir, d))
+            os.makedirs(d, exist_ok=True)  # Recreate empty folder
+
+    print(f"📦 Previous run archived → {archive_dir}/")
+
+
+# Run archive before tests start
+_archive_previous_run()
 
 # ──────────────────────────────────────────────────────────────────
 # PLUGIN REGISTRATION
