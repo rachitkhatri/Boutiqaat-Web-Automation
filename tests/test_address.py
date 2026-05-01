@@ -10,39 +10,12 @@
 # ============================================================
 
 import pytest
-import time
-import os
-from dotenv import load_dotenv
-from data.test_data import ADDRESS_DATA
+from data.test_data import ADDRESS_DATA, ADDRESS_TEST_DATA
 from pages.registration_page import RegistrationPage
 from pages.address_page import AddressPage
 from pages.cart_page import CartPage
 from pages.search_page import SearchPage
 from utils.logger import log
-
-# Load environment variables
-load_dotenv()
-
-_TS = str(int(time.time()))
-
-
-# ------------------------------------------------------------------
-# ADDRESS TEST DATA — loaded from .env file
-# ------------------------------------------------------------------
-ADDRESS_TEST_ACCOUNTS = [
-    {
-        "id":            "addr_add_kw",
-        "full_name":     os.getenv("ADDR_FULL_NAME", "Addr Tester"),
-        "mobile_number": os.getenv("ADDR_MOBILE", "50066666"),
-        "email":         f"addr.add.{_TS}@mailinator.com",
-        "password":      os.getenv("ADDR_PASSWORD", "Test@1234"),
-        "gender":        os.getenv("ADDR_GENDER", "women"),
-        "lang":          os.getenv("ADDR_LANG", "en"),
-        "country":       os.getenv("ADDR_COUNTRY", "kw"),
-        "address_key":   os.getenv("ADDR_KEY", "kw_salmiya"),
-        "address_key2":  os.getenv("ADDR_KEY2", "kw_hawalli"),
-    },
-]
 
 
 def _register_and_login(page, data: dict) -> None:
@@ -63,8 +36,8 @@ def _add_cart_item(page, data: dict) -> None:
 
 @pytest.mark.address
 @pytest.mark.parametrize(
-    "data", ADDRESS_TEST_ACCOUNTS,
-    ids=[d["id"] for d in ADDRESS_TEST_ACCOUNTS]
+    "data", ADDRESS_TEST_DATA,
+    ids=[d["id"] for d in ADDRESS_TEST_DATA]
 )
 def test_add_address(page, data):
     """
@@ -93,8 +66,8 @@ def test_add_address(page, data):
     "data",
     [{**d, "id": d["id"] + "_edit",
       "email": d["email"].replace("addr.add.", "addr.edit.")}
-     for d in ADDRESS_TEST_ACCOUNTS],
-    ids=[d["id"] + "_edit" for d in ADDRESS_TEST_ACCOUNTS],
+     for d in ADDRESS_TEST_DATA],
+    ids=[d["id"] + "_edit" for d in ADDRESS_TEST_DATA],
 )
 def test_edit_address(page, data):
     """
@@ -132,8 +105,8 @@ def test_edit_address(page, data):
     "data",
     [{**d, "id": d["id"] + "_second",
       "email": d["email"].replace("addr.add.", "addr.second.")}
-     for d in ADDRESS_TEST_ACCOUNTS],
-    ids=[d["id"] + "_second" for d in ADDRESS_TEST_ACCOUNTS],
+     for d in ADDRESS_TEST_DATA],
+    ids=[d["id"] + "_second" for d in ADDRESS_TEST_DATA],
 )
 def test_add_second_address(page, data):
     """

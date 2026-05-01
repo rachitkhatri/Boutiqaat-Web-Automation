@@ -175,3 +175,25 @@ WISHLIST_DATA = [
         "search_term":   "perfume",                            # Product to search and wishlist
     },
 ]
+
+# ──────────────────────────────────────────────────────────────
+# ADDRESS TEST DATA — account credentials for address tests
+#
+# Used by: test_address.py → test_add_address, test_edit_address,
+#          test_add_second_address
+# Flow: Register → Login → Add cart item → Address CRUD
+# ──────────────────────────────────────────────────────────────
+ADDRESS_TEST_DATA = [
+    {
+        "id":            "addr_add_kw",
+        "full_name":     "Addr Tester",
+        "mobile_number": "50066666",
+        "email":         f"addr.add.{_TS}@mailinator.com",
+        "password":      "Test@1234",
+        "gender":        "women",
+        "lang":          "en",
+        "country":       "kw",
+        "address_key":   "kw_salmiya",
+        "address_key2":  "kw_hawalli",
+    },
+]
