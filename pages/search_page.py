@@ -77,3 +77,35 @@ class SearchPage(BasePage):
 
         self.page.wait_for_load_state("networkidle")
         log("Product Selected", "PASS")
+
+    def select_product_by_index(self, index: int) -> None:
+        """
+        Select a product by index from autocomplete or search results.
+        Falls back to results page if autocomplete doesn't have enough items.
+
+        Args:
+            index: 0-based index of the product to select
+        """
+        try:
+            self.page.wait_for_selector("#Products a", timeout=6_000)
+            products = self.page.locator("#Products a")
+            if products.count() > index:
+                products.nth(index).click()
+            else:
+                # Not enough autocomplete results, use search results page
+                self.page.locator(_SEARCH_INPUT).press("Enter")
+                self.page.wait_for_load_state("networkidle")
+                self.page.wait_for_timeout(2_000)
+                self.page.locator("a[href*='/p/']").nth(index).click()
+        except Exception:
+            self.page.locator(_SEARCH_INPUT).press("Enter")
+            self.page.wait_for_load_state("networkidle")
+            self.page.wait_for_timeout(2_000)
+            results = self.page.locator("a[href*='/p/']")
+            if results.count() > index:
+                results.nth(index).click()
+            else:
+                results.first.click()
+
+        self.page.wait_for_load_state("networkidle")
+        log(f"Product Selected (index {index})", "PASS")

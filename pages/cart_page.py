@@ -16,6 +16,23 @@ from config.settings import BASE_DOMAIN
 
 class CartPage(BasePage):
 
+    def is_sold_out(self) -> bool:
+        """
+        Check if the current PDP product is sold out.
+        Returns True if the Buy Now button is missing or disabled.
+        """
+        try:
+            add_link = self.page.locator(".pro-details-add-to-cart a")
+            if add_link.count() == 0:
+                return True
+            # Check for sold out / out of stock indicators
+            page_text = self.page.content().lower()
+            if "sold out" in page_text or "out of stock" in page_text:
+                return True
+            return False
+        except Exception:
+            return True
+
     def add_to_cart(self) -> None:
         """
         Click the Buy Now / Add to Cart link on the product detail page.

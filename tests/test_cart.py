@@ -4,8 +4,8 @@
 # TEST FLOW:
 #   test_add_two_products_and_remove_one
 #     Register → Login →
-#     Search "perfume" → Add to cart →
-#     Search "puff" → Add to cart →
+#     Search "perfume" → Add to cart (retry up to 3 products if sold out) →
+#     Search "puff" → Add to cart (retry up to 3 products if sold out) →
 #     Go to cart → Remove one item → Verify 1 item remains
 #
 # Run: pytest tests/test_cart.py -v
@@ -18,14 +18,38 @@ from pages.search_page import SearchPage
 from pages.cart_page import CartPage
 from utils.logger import log
 
+MAX_PRODUCT_ATTEMPTS = 3
+
+
+def _search_and_add_to_cart(search, cart, term):
+    """
+    Search for a term and add a product to cart.
+    If the first product is sold out, tries the next product (up to MAX_PRODUCT_ATTEMPTS).
+    """
+    for attempt in range(MAX_PRODUCT_ATTEMPTS):
+        search.search(term)
+        search.select_product_by_index(attempt)
+
+        if not cart.is_sold_out():
+            cart.add_to_cart()
+            log(f"'{term}' product (index {attempt}) added to cart", "PASS")
+            return
+
+        log(f"'{term}' product (index {attempt}) is sold out, trying next", "WARN")
+
+    # If all attempts exhausted, fail with clear message
+    raise AssertionError(
+        f"All {MAX_PRODUCT_ATTEMPTS} products for '{term}' are sold out"
+    )
+
 
 @pytest.mark.cart
 @pytest.mark.parametrize("data", CART_DATA, ids=[d["id"] for d in CART_DATA])
 def test_add_two_products_and_remove_one(page, data):
     """
     Test cart functionality with multiple products:
-    1. Search "perfume" and add first product to cart
-    2. Search "puff" and add first product to cart
+    1. Search "perfume" and add first available product to cart
+    2. Search "puff" and add first available product to cart
     3. Go to cart page
     4. Remove one item using trash icon
     5. Verify 1 item remains in cart
@@ -33,20 +57,14 @@ def test_add_two_products_and_remove_one(page, data):
     reg = RegistrationPage(page)
     assert reg.register_and_login(data), "Registration/Login failed"
 
-    # ── STEP 1: SEARCH AND ADD PERFUME ────────────────────────────
     search = SearchPage(page)
-    search.search("perfume")
-    search.select_first_product()
-
     cart = CartPage(page)
-    cart.add_to_cart()
-    log("Perfume added to cart", "PASS")
+
+    # ── STEP 1: SEARCH AND ADD PERFUME ────────────────────────────
+    _search_and_add_to_cart(search, cart, "perfume")
 
     # ── STEP 2: SEARCH AND ADD PUFF ──────────────────────────────
-    search.search("puff")
-    search.select_first_product()
-    cart.add_to_cart()
-    log("Puff added to cart", "PASS")
+    _search_and_add_to_cart(search, cart, "puff")
 
     # ── STEP 3: GO TO CART PAGE ──────────────────────────────────
     cart.open_cart(data["lang"], data["country"])
