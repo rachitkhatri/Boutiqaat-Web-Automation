@@ -91,14 +91,19 @@ class RegistrationPage(BasePage):
                 resp_body = resp.text
                 log(f"API response: {resp.status_code} — {resp_body[:200]}", "DEBUG")
 
-                if resp.status_code != 200 or '"error"' in resp_body.lower():
+                # If account already exists, skip registration and proceed to login
+                already_exists = "already an account" in resp_body.lower()
+
+                if already_exists:
+                    log(f"Account already exists [{data['id']}] — proceeding to login", "INFO")
+                elif resp.status_code != 200 or '"error"' in resp_body.lower():
                     log(f"API registration failed: {resp.status_code} {resp_body[:200]}", "FAIL")
                     self.screenshot_on_failure(
                         f"screenshots/error_reg_{data['id']}_attempt{attempt}.png"
                     )
                     continue
-
-                log(f"Account created via API [{data['id']}]", "INFO")
+                else:
+                    log(f"Account created via API [{data['id']}]", "INFO")
 
                 # Brief pause — Magento needs a moment to propagate the new
                 # account before the login page can authenticate it.

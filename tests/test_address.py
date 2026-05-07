@@ -24,14 +24,29 @@ def _register_and_login(page, data: dict) -> None:
     assert reg.register_and_login(data), "Registration/Login failed"
 
 
+MAX_PRODUCT_ATTEMPTS = 3
+
+
 def _add_cart_item(page, data: dict) -> None:
-    """Add a product to cart so the address page is accessible."""
+    """Add a product to cart so the address page is accessible.
+    Retries with next product if the first is sold out."""
     search = SearchPage(page)
-    search.search("perfume")
-    search.select_first_product()
     cart = CartPage(page)
-    cart.add_to_cart()
-    log("Cart item added for address test", "INFO")
+
+    for attempt in range(MAX_PRODUCT_ATTEMPTS):
+        search.search("perfume")
+        search.select_product_by_index(attempt)
+
+        if not cart.is_sold_out():
+            cart.add_to_cart()
+            log(f"Cart item added for address test (index {attempt})", "INFO")
+            return
+
+        log(f"Product (index {attempt}) is sold out, trying next", "WARN")
+
+    raise AssertionError(
+        f"All {MAX_PRODUCT_ATTEMPTS} products for 'perfume' are sold out"
+    )
 
 
 @pytest.mark.address

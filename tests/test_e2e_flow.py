@@ -36,6 +36,30 @@ from pages.payment_page import PaymentPage
 from utils.logger import log
 
 
+MAX_PRODUCT_ATTEMPTS = 3
+
+
+def _search_and_add_to_cart(search, cart, term):
+    """
+    Search for a term and add a product to cart.
+    If the product is sold out, tries the next product (up to MAX_PRODUCT_ATTEMPTS).
+    """
+    for attempt in range(MAX_PRODUCT_ATTEMPTS):
+        search.search(term)
+        search.select_product_by_index(attempt)
+
+        if not cart.is_sold_out():
+            cart.add_to_cart()
+            log(f"'{term}' product (index {attempt}) added to cart", "PASS")
+            return
+
+        log(f"'{term}' product (index {attempt}) is sold out, trying next", "WARN")
+
+    raise AssertionError(
+        f"All {MAX_PRODUCT_ATTEMPTS} products for '{term}' are sold out"
+    )
+
+
 def _run_up_to_payment(page, data):
     """
     Shared helper — runs steps 1-8 (register through payment method selection).
@@ -51,14 +75,12 @@ def _run_up_to_payment(page, data):
     )
     log("Session active — proceeding to purchase flow", "INFO")
 
-    # ── STEP 2 & 3: SEARCH + SELECT PRODUCT ──────────────────────
+    # ── STEP 2 & 3: SEARCH + SELECT PRODUCT + ADD TO CART ────────
     search = SearchPage(page)
-    search.search(data["search_term"])
-    search.select_first_product()
-
-    # ── STEP 4 & 5: ADD TO CART + OPEN CART ──────────────────────
     cart = CartPage(page)
-    cart.add_to_cart()
+    _search_and_add_to_cart(search, cart, data["search_term"])
+
+    # ── STEP 4: OPEN CART ────────────────────────────────────────
     cart.open_cart(data["lang"], data["country"])
 
     # ── STEP 6: FILL ADDRESS FORM ─────────────────────────────────

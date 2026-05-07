@@ -16,8 +16,11 @@ import pytest
 from data.test_data import WISHLIST_DATA
 from pages.registration_page import RegistrationPage
 from pages.search_page import SearchPage
+from pages.cart_page import CartPage
 from pages.wishlist_page import WishlistPage
 from utils.logger import log
+
+MAX_PRODUCT_ATTEMPTS = 3
 
 
 @pytest.mark.wishlist
@@ -26,14 +29,30 @@ def test_add_to_wishlist(page, data):
     """
     Verify a product can be added to the wishlist from PDP.
     SIMPLIFIED: Only tests ADD functionality (no verification, no remove).
+    Retries with next product if the first is sold out.
     """
     reg = RegistrationPage(page)
     assert reg.register_and_login(data), "Registration/Login failed"
 
-    # ── SEARCH + SELECT PRODUCT ───────────────────────────────────
+    # ── SEARCH + SELECT AVAILABLE PRODUCT ─────────────────────────
     search = SearchPage(page)
-    search.search(data["search_term"])
-    search.select_first_product()
+    cart = CartPage(page)
+
+    product_found = False
+    for attempt in range(MAX_PRODUCT_ATTEMPTS):
+        search.search(data["search_term"])
+        search.select_product_by_index(attempt)
+
+        if not cart.is_sold_out():
+            product_found = True
+            log(f"Available product found (index {attempt})", "INFO")
+            break
+
+        log(f"Product (index {attempt}) is sold out, trying next", "WARN")
+
+    assert product_found, (
+        f"All {MAX_PRODUCT_ATTEMPTS} products for '{data['search_term']}' are sold out"
+    )
 
     # ── ADD TO WISHLIST FROM PDP ──────────────────────────────────
     wishlist = WishlistPage(page)
