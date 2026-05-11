@@ -37,6 +37,8 @@ class AddressPage(BasePage):
         Navigate to the checkout address page.
         Requires an active logged-in session with items in the cart.
         """
+        # FIX: boutiqaat keeps background requests alive causing networkidle to
+        # timeout after 60s. Use domcontentloaded then attempt networkidle as best-effort.
         self.page.goto(
             f"{BASE_DOMAIN}/{lang}-{country}/checkout/customeraddress/",
             wait_until="domcontentloaded",
@@ -44,7 +46,7 @@ class AddressPage(BasePage):
         try:
             self.page.wait_for_load_state("networkidle", timeout=15_000)
         except Exception:
-            pass
+            pass  # Safe to continue — DOM is already loaded
         log("Address Page", "PASS")
 
     def open_management(self, lang: str, country: str, gender: str) -> None:
@@ -52,6 +54,7 @@ class AddressPage(BasePage):
         Navigate to the address management page (no cart required).
         Uses the checkout address URL which works without cart items.
         """
+        # FIX: Same domcontentloaded fix as open() above.
         self.page.goto(
             f"{BASE_DOMAIN}/{lang}-{country}/checkout/customeraddress/",
             wait_until="domcontentloaded",
@@ -59,7 +62,7 @@ class AddressPage(BasePage):
         try:
             self.page.wait_for_load_state("networkidle", timeout=15_000)
         except Exception:
-            pass
+            pass  # Safe to continue — DOM is already loaded
         log("Address Management Page", "PASS")
 
     def _fill_form(self, data: dict) -> None:
@@ -122,12 +125,13 @@ class AddressPage(BasePage):
         Selector: a text='Edit Address'
         """
         # Reload page to ensure fresh state
+        # FIX: reload with domcontentloaded to avoid 60s networkidle timeout.
         try:
             self.page.reload(wait_until="domcontentloaded")
             try:
                 self.page.wait_for_load_state("networkidle", timeout=15_000)
             except Exception:
-                pass
+                pass  # Safe to continue — DOM is already loaded
         except Exception:
             pass
         
@@ -178,12 +182,13 @@ class AddressPage(BasePage):
         try:
             self.page.wait_for_timeout(5_000)
             # Reload page to ensure fresh state
+            # FIX: reload with domcontentloaded to avoid 60s networkidle timeout.
             try:
                 self.page.reload(wait_until="domcontentloaded")
                 try:
                     self.page.wait_for_load_state("networkidle", timeout=15_000)
                 except Exception:
-                    pass
+                    pass  # Safe to continue — DOM is already loaded
             except Exception:
                 pass
             

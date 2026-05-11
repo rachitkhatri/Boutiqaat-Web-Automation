@@ -36,6 +36,9 @@ class SearchPage(BasePage):
             match = re.search(r'/(en|ar)-([a-z]+)/([a-z]+)/', url)
             if match:
                 lang, country, gender = match.groups()
+                # FIX: boutiqaat keeps background requests alive causing networkidle
+                # to timeout after 60s. Use domcontentloaded then attempt networkidle
+                # as best-effort settle wait.
                 self.page.goto(
                     f"{BASE_DOMAIN}/{lang}-{country}/{gender}/",
                     wait_until="domcontentloaded"
@@ -43,13 +46,14 @@ class SearchPage(BasePage):
                 try:
                     self.page.wait_for_load_state("networkidle", timeout=15_000)
                 except Exception:
-                    pass
+                    pass  # Safe to continue — DOM is already loaded
             else:
+                # FIX: Same domcontentloaded fix for reload.
                 self.page.reload(wait_until="domcontentloaded")
                 try:
                     self.page.wait_for_load_state("networkidle", timeout=15_000)
                 except Exception:
-                    pass
+                    pass  # Safe to continue — DOM is already loaded
             self.page.wait_for_timeout(2_000)
 
         # Click the magnifier icon to open the search overlay

@@ -19,6 +19,9 @@ class LoginPage(BasePage):
 
     def open(self, lang: str, country: str, gender: str) -> None:
         """Navigate to the login page for the given locale and gender."""
+        # FIX: boutiqaat keeps background requests alive causing networkidle to
+        # timeout after 60s. Use domcontentloaded (fires when DOM is ready) then
+        # attempt networkidle with a short timeout as a best-effort settle wait.
         self.page.goto(
             f"{BASE_DOMAIN}/{lang}-{country}/{gender}/login/",
             wait_until="domcontentloaded",
@@ -26,7 +29,7 @@ class LoginPage(BasePage):
         try:
             self.page.wait_for_load_state("networkidle", timeout=15_000)
         except Exception:
-            pass
+            pass  # Safe to continue — DOM is already loaded
         self.page.wait_for_timeout(PAGE_SETTLE_MS)
         
         # Dismiss any overlays that appeared after page load

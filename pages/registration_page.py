@@ -41,6 +41,9 @@ class RegistrationPage(BasePage):
         Note: This method exists for compatibility but registration
         is done via API in the register() method.
         """
+        # FIX: boutiqaat keeps background requests alive causing networkidle to
+        # timeout after 60s. Use domcontentloaded (fires when DOM is ready) then
+        # attempt networkidle with a short timeout as a best-effort settle wait.
         self.page.goto(
             build_url(lang, country, gender) + "register/",
             wait_until="domcontentloaded"
@@ -48,7 +51,7 @@ class RegistrationPage(BasePage):
         try:
             self.page.wait_for_load_state("networkidle", timeout=15_000)
         except Exception:
-            pass
+            pass  # Safe to continue — DOM is already loaded
         self.page.wait_for_timeout(PAGE_SETTLE_MS)
 
     def register(self, data: dict) -> bool:
@@ -118,11 +121,13 @@ class RegistrationPage(BasePage):
                 # This gives the browser a valid PHPSESSID session cookie
                 # that all subsequent steps (cart, address, payment) need.
                 login_url = build_url(data['lang'], data['country'], data['gender']) + "login/"
+                # FIX: Use domcontentloaded to avoid 60s timeout from boutiqaat's
+                # persistent background requests. networkidle attempted as best-effort.
                 self.page.goto(login_url, wait_until="domcontentloaded")
                 try:
                     self.page.wait_for_load_state("networkidle", timeout=15_000)
                 except Exception:
-                    pass
+                    pass  # Safe to continue — DOM is already loaded
                 self.page.wait_for_timeout(PAGE_SETTLE_MS)
 
                 # Wait for the email input to be ready

@@ -23,12 +23,14 @@ class NavigationPage(BasePage):
 
     def navigate_to(self, url: str, name: str) -> None:
         """Navigate to a URL and wait for the page to load."""
+        # FIX: boutiqaat keeps background requests alive causing networkidle to
+        # timeout after 60s. Use domcontentloaded then attempt networkidle as best-effort.
         try:
             self.page.goto(url, wait_until="domcontentloaded", timeout=60_000)
             try:
                 self.page.wait_for_load_state("networkidle", timeout=15_000)
             except Exception:
-                log(f"{name} — networkidle timed out, continuing", "WARN")
+                log(f"{name} — networkidle timed out, continuing", "WARN")  # Safe to continue
         except Exception:
             log(f"{name} — domcontentloaded timed out, retrying", "WARN")
             self.page.goto(url, wait_until="domcontentloaded", timeout=60_000)

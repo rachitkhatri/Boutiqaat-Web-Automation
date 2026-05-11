@@ -166,6 +166,8 @@ class WishlistPage(BasePage):
         Navigate to the wishlist page.
         URL: /{lang}-{country}/{gender}/wish-list/ (with hyphen)
         """
+        # FIX: boutiqaat keeps background requests alive causing networkidle to
+        # timeout after 60s. Use domcontentloaded then attempt networkidle as best-effort.
         self.page.goto(
             f"{BASE_DOMAIN}/{lang}-{country}/{gender}/wish-list/",
             wait_until="domcontentloaded",
@@ -173,7 +175,7 @@ class WishlistPage(BasePage):
         try:
             self.page.wait_for_load_state("networkidle", timeout=15_000)
         except Exception:
-            pass
+            pass  # Safe to continue — DOM is already loaded
         log(f"Wishlist Page: {self.page.url[:60]}", "INFO")
 
     def remove_first_wishlist_item(self) -> None:
