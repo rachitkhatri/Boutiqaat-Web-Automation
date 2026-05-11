@@ -21,8 +21,12 @@ class LoginPage(BasePage):
         """Navigate to the login page for the given locale and gender."""
         self.page.goto(
             f"{BASE_DOMAIN}/{lang}-{country}/{gender}/login/",
-            wait_until="networkidle",
+            wait_until="domcontentloaded",
         )
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=15_000)
+        except Exception:
+            pass
         self.page.wait_for_timeout(PAGE_SETTLE_MS)
         
         # Dismiss any overlays that appeared after page load

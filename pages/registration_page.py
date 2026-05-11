@@ -43,8 +43,12 @@ class RegistrationPage(BasePage):
         """
         self.page.goto(
             build_url(lang, country, gender) + "register/",
-            wait_until="networkidle"
+            wait_until="domcontentloaded"
         )
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=15_000)
+        except Exception:
+            pass
         self.page.wait_for_timeout(PAGE_SETTLE_MS)
 
     def register(self, data: dict) -> bool:
@@ -114,7 +118,11 @@ class RegistrationPage(BasePage):
                 # This gives the browser a valid PHPSESSID session cookie
                 # that all subsequent steps (cart, address, payment) need.
                 login_url = build_url(data['lang'], data['country'], data['gender']) + "login/"
-                self.page.goto(login_url, wait_until="networkidle")
+                self.page.goto(login_url, wait_until="domcontentloaded")
+                try:
+                    self.page.wait_for_load_state("networkidle", timeout=15_000)
+                except Exception:
+                    pass
                 self.page.wait_for_timeout(PAGE_SETTLE_MS)
 
                 # Wait for the email input to be ready

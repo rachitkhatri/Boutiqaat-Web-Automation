@@ -38,10 +38,18 @@ class SearchPage(BasePage):
                 lang, country, gender = match.groups()
                 self.page.goto(
                     f"{BASE_DOMAIN}/{lang}-{country}/{gender}/",
-                    wait_until="networkidle"
+                    wait_until="domcontentloaded"
                 )
+                try:
+                    self.page.wait_for_load_state("networkidle", timeout=15_000)
+                except Exception:
+                    pass
             else:
-                self.page.reload(wait_until="networkidle")
+                self.page.reload(wait_until="domcontentloaded")
+                try:
+                    self.page.wait_for_load_state("networkidle", timeout=15_000)
+                except Exception:
+                    pass
             self.page.wait_for_timeout(2_000)
 
         # Click the magnifier icon to open the search overlay

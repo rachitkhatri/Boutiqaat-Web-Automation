@@ -24,10 +24,13 @@ class NavigationPage(BasePage):
     def navigate_to(self, url: str, name: str) -> None:
         """Navigate to a URL and wait for the page to load."""
         try:
-            self.page.goto(url, wait_until="networkidle", timeout=60_000)
+            self.page.goto(url, wait_until="domcontentloaded", timeout=60_000)
+            try:
+                self.page.wait_for_load_state("networkidle", timeout=15_000)
+            except Exception:
+                log(f"{name} — networkidle timed out, continuing", "WARN")
         except Exception:
-            # Fallback: if networkidle times out, retry with domcontentloaded
-            log(f"{name} — networkidle timed out, retrying with domcontentloaded", "WARN")
+            log(f"{name} — domcontentloaded timed out, retrying", "WARN")
             self.page.goto(url, wait_until="domcontentloaded", timeout=60_000)
             self.page.wait_for_timeout(5_000)
         log(f"Navigated to {name}: {self.page.url[:60]}", "INFO")

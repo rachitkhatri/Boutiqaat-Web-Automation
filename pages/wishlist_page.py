@@ -168,8 +168,12 @@ class WishlistPage(BasePage):
         """
         self.page.goto(
             f"{BASE_DOMAIN}/{lang}-{country}/{gender}/wish-list/",
-            wait_until="networkidle",
+            wait_until="domcontentloaded",
         )
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=15_000)
+        except Exception:
+            pass
         log(f"Wishlist Page: {self.page.url[:60]}", "INFO")
 
     def remove_first_wishlist_item(self) -> None:
