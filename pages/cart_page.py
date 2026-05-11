@@ -61,7 +61,32 @@ class CartPage(BasePage):
         
         # Additional wait for cart to fully sync
         self.page.wait_for_timeout(3_000)
+
+        # Verify item was actually added
+        if not self.is_item_added_to_cart():
+            log("Item was NOT added to cart — cart appears empty or unchanged", "FAIL")
+            raise AssertionError("Add to cart failed: item not found in cart after clicking Buy Now")
+
         log("Add To Cart", "PASS")
+
+    def is_item_added_to_cart(self) -> bool:
+        """
+        Verify at least one item exists in cart after add-to-cart action.
+        Checks URL (cart page redirect) or cart badge counter.
+        """
+        # If redirected to cart page, check for trash icons (cart rows)
+        if "/checkout/cart" in self.page.url:
+            return self.page.locator("button:has(i.icon-trash)").count() > 0
+
+        # Otherwise check header cart badge is non-zero
+        badge = self.page.locator(".pro-count.gold")
+        if badge.count() > 0:
+            try:
+                return int(badge.inner_text().strip()) > 0
+            except (ValueError, Exception):
+                pass
+
+        return False
 
     def open_cart(self, lang: str, country: str) -> None:
         """Navigate directly to the cart page URL."""
