@@ -40,6 +40,23 @@ def test_add_to_wishlist(page, data):
 
     product_found = False
     for attempt in range(MAX_PRODUCT_ATTEMPTS):
+        # Always navigate to homepage before searching to ensure the search
+        # overlay renders reliably (PDP pages can block the search input)
+        from config.settings import BASE_DOMAIN
+        import re
+        url = page.url
+        match = re.search(r'/(en|ar)-([a-z]+)/([a-z]+)/', url)
+        if match:
+            lang, country, gender = match.groups()
+            page.goto(f"{BASE_DOMAIN}/{lang}-{country}/{gender}/", wait_until="domcontentloaded")
+        else:
+            page.goto(f"{BASE_DOMAIN}/en-kw/women/", wait_until="domcontentloaded")
+        try:
+            page.wait_for_load_state("networkidle", timeout=15_000)
+        except Exception:
+            pass
+        page.wait_for_timeout(2_000)
+
         search.search(data["search_term"])
         search.select_product_by_index(attempt)
 

@@ -59,8 +59,15 @@ class SearchPage(BasePage):
         # Click the magnifier icon to open the search overlay
         self.page.locator("i.s-open").click()
 
-        # Wait for the overlay input to become visible
-        self.page.wait_for_selector(_SEARCH_INPUT, state="visible", timeout=15_000)
+        # Wait for the overlay input — retry the click once if it doesn't appear
+        try:
+            self.page.wait_for_selector(_SEARCH_INPUT, state="visible", timeout=10_000)
+        except Exception:
+            # Overlay may not have opened — dismiss any blocking overlay and retry
+            self.page.evaluate("document.querySelectorAll('.modal-backdrop, .overlay, .popup-overlay').forEach(el => el.remove())")
+            self.page.wait_for_timeout(1_000)
+            self.page.locator("i.s-open").click()
+            self.page.wait_for_selector(_SEARCH_INPUT, state="visible", timeout=15_000)
 
         search_input = self.page.locator(_SEARCH_INPUT)
         self.type_like_user(search_input, term)
