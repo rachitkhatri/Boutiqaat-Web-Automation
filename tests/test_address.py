@@ -65,6 +65,8 @@ def test_add_address(page, data):
     addr_data = ADDRESS_DATA[data["address_key"]]
     address = AddressPage(page)
     address.open(data["lang"], data["country"], data["gender"])
+    assert "customeraddress" in page.url, \
+        f"[{data['id']}] Address page did not load — URL: {page.url}"
 
     # Fill and save the address
     address.fill_address(addr_data)
@@ -94,6 +96,8 @@ def test_edit_address(page, data):
 
     address = AddressPage(page)
     address.open(data["lang"], data["country"], data["gender"])
+    assert "customeraddress" in page.url, \
+        f"[{data['id']}] Address page did not load — URL: {page.url}"
 
     # Add initial address
     address.fill_address(ADDRESS_DATA[data["address_key"]])
@@ -133,6 +137,8 @@ def test_add_second_address(page, data):
 
     address = AddressPage(page)
     address.open(data["lang"], data["country"], data["gender"])
+    assert "customeraddress" in page.url, \
+        f"[{data['id']}] Address page did not load — URL: {page.url}"
 
     # Add first address
     address.fill_address(ADDRESS_DATA[data["address_key"]])

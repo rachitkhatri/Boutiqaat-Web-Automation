@@ -69,6 +69,8 @@ def test_add_two_products_and_remove_one(page, data):
     # ── STEP 3: GO TO CART PAGE ──────────────────────────────────
     cart.open_cart(data["lang"], data["country"])
     page.wait_for_timeout(3_000)
+    assert "/checkout/cart" in page.url, \
+        f"[{data['id']}] Cart page did not load — current URL: {page.url}"
     log("Opened cart page", "INFO")
 
     # ── STEP 4: REMOVE ONE ITEM USING TRASH ICON ─────────────────
@@ -76,7 +78,7 @@ def test_add_two_products_and_remove_one(page, data):
     trash_count = trash_buttons.count()
     log(f"Found {trash_count} items in cart with trash icons", "INFO")
     assert trash_count == 2, (
-        f"Expected 2 items in cart before removal, "
+        f"[{data['id']}] Expected 2 items in cart before removal, "
         f"but found {trash_count}"
     )
 
@@ -88,13 +90,15 @@ def test_add_two_products_and_remove_one(page, data):
     # Reload cart for fresh DOM
     cart.open_cart(data["lang"], data["country"])
     page.wait_for_timeout(3_000)
+    assert "/checkout/cart" in page.url, \
+        f"[{data['id']}] Cart page did not reload after removal — URL: {page.url}"
     log("Cart reloaded after item removal", "INFO")
 
     # ── STEP 5: VERIFY 1 ITEM REMAINS IN CART ────────────────────
     remaining_items = page.locator("button:has(i.icon-trash)").count()
     log(f"Remaining items in cart: {remaining_items}", "INFO")
     assert remaining_items == 1, (
-        f"Expected 1 item in cart after removing 1 of 2, "
+        f"[{data['id']}] Expected 1 item in cart after removing 1 of 2, "
         f"but found {remaining_items}"
     )
     log("Cart operation completed - Added 2 items, removed 1, verified 1 remains", "PASS")

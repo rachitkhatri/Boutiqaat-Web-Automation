@@ -105,8 +105,10 @@ def test_page_loads_with_products(page, data):
         min_items=data["min_items"],
     )
 
-    # Verify page title is meaningful (not 404 / Oops)
+    # Verify page title is meaningful (not empty / 404 / Oops)
     title = nav.get_page_title()
+    assert title, \
+        f"[{data['id']}] Page title is empty — possible blank/error page"
     assert "404" not in title and "oops" not in title.lower(), \
         f"[{data['id']}] Page shows error — title: {title!r}"
 

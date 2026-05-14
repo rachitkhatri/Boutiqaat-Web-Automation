@@ -82,23 +82,30 @@ def _run_up_to_payment(page, data):
 
     # ── STEP 4: OPEN CART ────────────────────────────────────────
     cart.open_cart(data["lang"], data["country"])
+    assert "/checkout/cart" in page.url, \
+        f"[{data['id']}] Cart page did not load — URL: {page.url}"
 
     # ── STEP 6: FILL ADDRESS FORM ─────────────────────────────────
-    # Fetches the address dataset by key from ADDRESS_DATA in test_data.py
     addr_data = ADDRESS_DATA[data["address_key"]]
     address = AddressPage(page)
     address.open(data["lang"], data["country"], data["gender"])
+    assert "customeraddress" in page.url, \
+        f"[{data['id']}] Address page did not load — URL: {page.url}"
     address.fill_address(addr_data)
     address.save_address()
+    assert address.has_saved_address(), \
+        f"[{data['id']}] Address not saved — CONTINUE TO PAYMENT not visible"
 
     # ── STEP 7: CONTINUE TO PAYMENT ──────────────────────────────
     address.continue_to_payment(data["gender"])
+    assert "checkout/payment" in page.url, \
+        f"[{data['id']}] Payment page did not load — URL: {page.url}"
 
     # ── STEP 8: DISMISS MODAL + SELECT PAYMENT METHOD ────────────
     payment = PaymentPage(page)
-    payment.dismiss_modal()              # Close "Free Delivery" popup
-    payment.select_payment_method()      # KNET by default
-    payment.select_wallet()              # Skipped if no wallet balance
+    payment.dismiss_modal()
+    payment.select_payment_method()
+    payment.select_wallet()
 
     return payment
 
@@ -125,6 +132,8 @@ def test_complete_flow(page, data):
 
     # ── STEP 9: PLACE ORDER + WAIT FOR SUCCESS ────────────────────
     payment.place_order()
+    assert "kpay.com.kw" in page.url or "checkout/payment" in page.url, \
+        f"[{data['id']}] Payment gateway redirect failed — URL: {page.url}"
     
     # Try to wait for payment success, but skip if timeout (manual payment not completed)
     try:
@@ -157,11 +166,15 @@ def test_cancel_flow(page, data):
 
     # ── STEP 9: PLACE ORDER (navigate to KNET gateway) ───────────
     payment.place_order()
+    assert "kpay.com.kw" in page.url or "checkout/payment" in page.url, \
+        f"[{data['id']}] Payment gateway redirect failed — URL: {page.url}"
 
     # ── STEP 10: CANCEL ON KNET GATEWAY ──────────────────────────
     # Clicks input#cancel on kpay.com.kw
     # Redirects back to boutiqaat /checkout/paymentfail/
     payment.cancel_payment()
+    assert "paymentfail" in page.url, \
+        f"[{data['id']}] Payment fail page did not load after cancel — URL: {page.url}"
 
     # ── STEP 11: CAPTURE OOPS SCREEN DETAILS ─────────────────────
     # Reads all key-values from URL params + page text

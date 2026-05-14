@@ -73,6 +73,8 @@ def test_add_to_wishlist(page, data):
 
     # ── ADD TO WISHLIST FROM PDP ──────────────────────────────────
     wishlist = WishlistPage(page)
+    assert page.locator("a[title='Add to Wishlist']").count() > 0, \
+        f"[{data['id']}] Wishlist button not found on PDP — URL: {page.url}"
     wishlist.add_to_wishlist_from_pdp()
     
     # Wait for wishlist action to complete
