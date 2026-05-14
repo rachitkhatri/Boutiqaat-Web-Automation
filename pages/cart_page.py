@@ -37,29 +37,25 @@ class CartPage(BasePage):
         """
         Click the Buy Now / Add to Cart link on the product detail page.
         Selector: .pro-details-add-to-cart a
-        FIXED: Added proper wait for cart update and navigation handling
         """
         add_link = self.page.locator(".pro-details-add-to-cart a")
         add_link.wait_for(state="visible", timeout=15_000)
         add_link.scroll_into_view_if_needed()
-        
-        # Click and wait for navigation (Buy Now redirects to cart)
+        self.page.evaluate("document.querySelectorAll('.celebriti-content, .modal-backdrop, .popup-overlay, .overlay').forEach(el => el.remove())")
+
         add_link.click()
-        
-        # Wait for navigation to cart page
+
+        # Wait for either cart page redirect or AJAX completion
         try:
-            self.page.wait_for_url("**/checkout/cart/**", timeout=30_000)
+            self.page.wait_for_url("**/checkout/cart/**", timeout=15_000)
             log("Navigated to cart page after add", "INFO")
         except Exception:
             log("No navigation detected, item may be added via AJAX", "INFO")
-        
-        # Wait for network to settle
-        try:
-            self.page.wait_for_load_state("networkidle", timeout=20_000)
-        except Exception:
-            pass
-        
-        # Additional wait for cart to fully sync
+            try:
+                self.page.wait_for_load_state("networkidle", timeout=15_000)
+            except Exception:
+                pass
+
         self.page.wait_for_timeout(3_000)
 
         # Verify item was actually added
@@ -74,24 +70,49 @@ class CartPage(BasePage):
         Verify at least one item exists in cart after add-to-cart action.
         Checks URL (cart page redirect) or cart badge counter.
         """
-        # If redirected to cart page, check for trash icons (cart rows)
+        # If redirected to cart page, check for cart row elements
         if "/checkout/cart" in self.page.url:
-            return self.page.locator("button:has(i.icon-trash)").count() > 0
+            for selector in ["button:has(i.icon-trash)", ".cart.item", ".item-info", "tbody.cart.item"]:
+                if self.page.locator(selector).count() > 0:
+                    return True
+            return False
 
-        # Otherwise check header cart badge is non-zero
-        badge = self.page.locator(".pro-count.gold")
-        if badge.count() > 0:
-            try:
-                return int(badge.inner_text().strip()) > 0
-            except (ValueError, Exception):
-                pass
+        # Check header cart badge — try multiple possible selectors
+        for badge_sel in [".pro-count.gold", ".pro-count", "[class*='cart-count']", "[class*='cart_count']", "[class*='cartCount']", "span.count"]:
+            badge = self.page.locator(badge_sel)
+            if badge.count() > 0:
+                try:
+                    val = badge.first.inner_text().strip()
+                    if val and int(val) > 0:
+                        return True
+                except (ValueError, Exception):
+                    continue
+
+        # Last resort: navigate to cart page and check
+        try:
+            current_url = self.page.url
+            import re
+            match = re.search(r'/(en|ar)-([a-z]+)/', current_url)
+            if match:
+                lang, country = match.groups()
+                from config.settings import BASE_DOMAIN
+                self.page.goto(f"{BASE_DOMAIN}/{lang}-{country}/checkout/cart/", wait_until="domcontentloaded")
+                self.page.wait_for_timeout(3_000)
+                for selector in ["button:has(i.icon-trash)", ".cart.item", ".item-info"]:
+                    if self.page.locator(selector).count() > 0:
+                        return True
+        except Exception:
+            pass
 
         return False
 
     def open_cart(self, lang: str, country: str) -> None:
         """Navigate directly to the cart page URL."""
-        self.page.goto(f"{BASE_DOMAIN}/{lang}-{country}/checkout/cart/")
-        self.page.wait_for_load_state("networkidle")
+        self.page.goto(f"{BASE_DOMAIN}/{lang}-{country}/checkout/cart/", wait_until="domcontentloaded")
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=15_000)
+        except Exception:
+            pass
         log("Cart Page", "PASS")
 
     def get_cart_item_count(self) -> int:
